@@ -3,7 +3,8 @@ import { Scene } from "./Scene"
 import { assetLoad } from "./assets"
 
 
-
+export const WIDTH = 800
+export const HEIGHT = 600
 
 const canvas : HTMLCanvasElement = document.getElementById('app-canvas') as HTMLCanvasElement
 
@@ -12,7 +13,8 @@ const app = new Application()
 await app.init({
   canvas,
   background: 0x000,
-  resizeTo: window
+  width: WIDTH,
+  height: HEIGHT
 })
 
 await assetLoad()
@@ -20,4 +22,7 @@ await assetLoad()
 const MainScene = new Scene()
 
 app.stage.addChild(MainScene)
+
+
+
 

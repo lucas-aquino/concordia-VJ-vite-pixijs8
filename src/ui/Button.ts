@@ -1,12 +1,14 @@
-import { Container, NineSliceSprite, Sprite, Text, Texture } from "pixi.js"
+import { Container, NineSliceSprite, Text, Texture } from "pixi.js"
 
 interface ButtonProps {
   realessedTextureAlias : string,
+  disabledTextureAlias: string,
   pressedTextureAlias : string,
-  disabledTextureAlias: string
+  overTextureAlias: string,
   text: string,
   width: number,
-  height: number
+  height: number,
+  callback: Function
 }
 
 export class Button extends Container {
@@ -17,14 +19,19 @@ export class Button extends Container {
   
   private enable : boolean
 
-  private realessedTexture : NineSliceSprite
-  private pressedTexture : NineSliceSprite
-  private disabledTexture : NineSliceSprite
+  private realessedTexture : Texture
+  private pressedTexture : Texture
+  private disabledTexture : Texture
+  private overTexture : Texture
+
+  private texture : NineSliceSprite
 
   private pressed : boolean
 
   private verticalCenter : number
   private horizontalCenter : number
+
+  private callback : Function
 
   constructor( btnProps : ButtonProps ) {
     super()
@@ -37,31 +44,23 @@ export class Button extends Container {
     this.verticalCenter = btnProps.height / 2
     this.horizontalCenter = btnProps.width / 2
 
-    const propsTexture = {
+    
+    this.realessedTexture = Texture.from(btnProps.realessedTextureAlias)
+    this.pressedTexture = Texture.from(btnProps.pressedTextureAlias)
+    this.disabledTexture = Texture.from(btnProps.disabledTextureAlias)
+    this.overTexture = Texture.from(btnProps.overTextureAlias)
+    
+    this.texture = new NineSliceSprite({
+      texture: Texture.from(btnProps.overTextureAlias),
       leftWidth: 35,
       topHeight: 35,
       rightWidth: 35,
       bottomHeight: 35,
       width: btnProps.width,
       height: btnProps.height,
-    }
-    
-    this.realessedTexture = new NineSliceSprite({
-      texture: Texture.from(btnProps.realessedTextureAlias),
-      ...propsTexture
     })
     
-    this.pressedTexture = new NineSliceSprite({
-      texture: Texture.from(btnProps.pressedTextureAlias),
-      ...propsTexture
-    })
-
-    this.disabledTexture = new NineSliceSprite({
-      texture: Texture.from(btnProps.disabledTextureAlias),
-      ...propsTexture
-    })
-
-    
+    this.callback = btnProps.callback
 
     this.textObject = new Text(this.text, {
       fontSize: 24,
@@ -76,46 +75,65 @@ export class Button extends Container {
 
     
     this.enable = true
-    this.pressedTexture.visible = false
-    this.disabledTexture.visible = false
 
-    
-    
-    this.addChild(this.realessedTexture)
-    this.addChild(this.pressedTexture)
-    this.addChild(this.disabledTexture)
+    this.texture.texture = this.realessedTexture
+
+    this.addChild(this.texture)
     this.addChild(this.textObject)
 
     this.on('mousedown', this.onButtonPressed)
     this.on('mouseup', this.onButtonRealessed)
+    this.on('mouseover', this.onMouseOver)
+    this.on('mouseout', this.onMouseOut)
   }
 
   setEnable() {
     this.enable = !this.enable
     this.interactive = this.enable
-    this.disabledTexture.visible = !this.enable
+    
+    this.texture.texture = this.realessedTexture
+
+    if(this.enable){
+      return
+    }
+
+    this.texture.texture = this.disabledTexture
+
   }
 
-  onButtonPressed(): void {
-    console.log('isPressed')
+  private onButtonPressed(): void {
     this.pressed = true
     this.textObject.position.y = this.verticalCenter + 2
-    this.pressedTexture.visible = this.pressed
-    this.realessedTexture.visible = !this.pressed
+    this.texture.texture = this.pressedTexture
   }
-
-  onButtonRealessed(): void {
-    console.log('isRealessed')
+  
+  private onButtonRealessed(): void {
     this.pressed = false
     this.textObject.position.y = this.verticalCenter
-    this.pressedTexture.visible = this.pressed
-    this.realessedTexture.visible = !this.pressed
+    this.texture.texture = this.overTexture
+    this.callback()
+  }
+
+  private onMouseOver() : void {
+    if(!this.pressed){
+      this.texture.texture = this.overTexture
+    }
+  }
+
+  private onMouseOut() : void {
+    if(!this.pressed){
+      this.texture.texture = this.realessedTexture
+    }
   }
 
   get isPressed() : boolean {
     return this.pressed
   }
 }
+
+
+
+
 
 
 

@@ -14,8 +14,9 @@ export const assetLoad = async () => {
     { alias: 'filled_star_outline', src: '/static/ui/basic_gui_bundle/Icons/Icon_Large_Star_WhiteOutline.png' },
     { alias: 'empty_star_outline', src: '/static/ui/basic_gui_bundle/Icons/Icon_Large_StarSrey_SeethroughOutline.png' },
 
-    { alias: 'btn_realessed_blue', src: '/static/ui/kenny_ui/blue_button04.png' },
-    { alias: 'btn_pressed_blue', src: '/static/ui/kenny_ui/blue_button05.png' },
+    { alias: 'btn_realessed_blue', src: '/static/ui/kenny_ui/blue_button02.png' },
+    { alias: 'btn_pressed_blue', src: '/static/ui/kenny_ui/blue_button03.png' },
+    { alias: 'btn_over', src: '/static/ui/kenny_ui/blue_button00.png' },
     { alias: 'btn_disabled', src: '/static/ui/kenny_ui/grey_button11.png' },
   ]
 
