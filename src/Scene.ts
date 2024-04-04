@@ -15,11 +15,7 @@ export class Scene extends Container {
     
     this.mainLevel = new MainLevel()
 
-
     this.addChild(this.mainLevel)
-
-    
-    
     
     Ticker.shared.add(this.mainLevel.update, this.mainLevel)
   }

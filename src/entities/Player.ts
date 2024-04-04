@@ -1,20 +1,35 @@
-import { AnimatedSprite, Container, Point, Spritesheet, Texture, Ticker } from "pixi.js";
+import { AnimatedSprite, Graphics, Point, Spritesheet, Texture, Ticker } from "pixi.js";
 import { RigidBody } from "../physics/RigidBody";
-import { HEIGHT, WIDTH } from "../app";
+import Keyboard from "../events/Keyboard";
+
+
+export enum PlayerAnimations {
+  idle = 'idle',
+  run = 'run',
+  jump = 'jump',
+  ataqueStart = 'ataqueStart',
+  ataqueEnd = 'ataqueEnd',
+  hit = 'hit'   
+}
 
 export class Player extends RigidBody {
 
   atlasData : any
 
   animations : any
+  
+  currentAnimation : AnimatedSprite
 
+  speed : number = 5
+  jumpForce : number = 10
+
+  canJump : boolean = false
+
+
+  hitbox : Graphics
 
   constructor() {
     super()
-    
-    this.speed = new Point( 0, 0 )
-
-    this.acceleration = new Point( 5, 6 )
 
     this.atlasData = { 
       frames: {
@@ -190,9 +205,14 @@ export class Player extends RigidBody {
       }
     } 
 
+    this.interactive = true
+
+    const player_texture = Texture.from('player_spritesheet')
+
+    player_texture.source.scaleMode = 'nearest'
 
     const spriteSheet = new Spritesheet(
-      Texture.from('player_spritesheet'),
+      player_texture,
       this.atlasData
     );
     
@@ -210,48 +230,68 @@ export class Player extends RigidBody {
       hit : new AnimatedSprite(spriteSheet.animations.hit),
     }
     
+
     for (let clave in this.animations) {
       this.animations[clave].autoUpdate = false
+      this.animations[clave].anchor.x = 0.5
+      this.animations[clave].anchor.y = 0.5
       this.animations[clave].scale = 5
     }
+
+
+    this.currentAnimation = this.animations.idle
+    
+
+    this.hitbox = new Graphics()
+      .rect(0, 0, 45, 60)
+      .fill({
+        color: 0xFF00FF, 
+        alpha: 0.1,
+      })
+      .stroke({
+        color: 0xFF00FF, 
+        alpha: 0.8,
+        width: 1
+      })
+    
+    this.hitbox.x = -25
+    this.hitbox.y = -20
+
+    this.addChild(this.currentAnimation)
+    this.addChild(this.hitbox)
   }
 
-  playAnimation(animation : string, speed : number = 0.07) {
-    this.animations[animation].play()
-    this.animations[animation].animationSpeed = speed
-    this.addChild(this.animations[animation])
+  playAnimation(animation : PlayerAnimations, speed : number = 0.07) {
+    this.currentAnimation = this.animations[animation]
+    this.currentAnimation.animationSpeed = speed
+    this.currentAnimation.play()
   }
 
-  update(ticker : Ticker) {
-    this.animations.idle.update(ticker)
-    this.animations.run.update(ticker)
-    this.animations.jump.update(ticker)
-    this.animations.ataqueStart.update(ticker)
-    this.animations.ataqueEnd.update(ticker)
-    this.animations.hit.update(ticker)
-    
-    
-    if(this.x > WIDTH){
-      this.x = WIDTH
-      this.acceleration.x = Math.abs(this.acceleration.x) * -1
-    }else if(this.x < 0) {
-      this.x = 0
-      this.acceleration.x = Math.abs(this.acceleration.x)
-    }
-    
-    
-    if(this.y > HEIGHT){
-      this.y = HEIGHT
-      this.acceleration.y = Math.abs(this.acceleration.y) * -1
-    }else if(this.y < 0) {
-      this.y = 0
-      this.acceleration.y = Math.abs(this.acceleration.y)
-    }
+  override update(ticker : Ticker) {
+    this.currentAnimation.update(ticker)
 
+    this.movent()
 
     super.update(ticker)
   }
   
+  movent() : void {
+    if(Keyboard.state.get('KeyA')) {
+      this.addForce(-this.speed)
+    }
+
+    if(Keyboard.state.get('KeyD')) {
+      this.addForce(this.speed)
+    }
+
+    if(Keyboard.state.get('KeyW')) {
+      this.addForce(0, -this.speed)
+    }
+
+    if(Keyboard.state.get('KeyS')) {
+      this.addForce(0, this.speed)
+    }
+  }
 }
 
 
