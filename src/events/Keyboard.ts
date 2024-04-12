@@ -1,6 +1,6 @@
 import { EventEmitter } from "pixi.js"
 
-export default class Keyboard {
+export class Keyboard {
 
   public static readonly state : Map<string, boolean> = new Map()
 

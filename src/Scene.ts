@@ -11,8 +11,6 @@ export class Scene extends Container {
   constructor() {
     super()
 
-    
-    
     this.mainLevel = new MainLevel()
 
     this.addChild(this.mainLevel)

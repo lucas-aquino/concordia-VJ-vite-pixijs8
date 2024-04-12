@@ -1,7 +1,7 @@
 import { Application } from "pixi.js"
 import { Scene } from "./Scene"
 import { assetLoad } from "./assets"
-import Keyboard from "./events/Keyboard"
+import { Keyboard } from "./events/Keyboard"
 
 
 export const WIDTH = 800

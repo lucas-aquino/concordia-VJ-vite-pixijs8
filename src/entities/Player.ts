@@ -1,6 +1,8 @@
-import { AnimatedSprite, Graphics, Point, Spritesheet, Texture, Ticker } from "pixi.js";
+import { AnimatedSprite, Graphics, Point, Rectangle, Spritesheet, Texture, Ticker } from "pixi.js";
 import { RigidBody } from "../physics/RigidBody";
-import Keyboard from "../events/Keyboard";
+import { Keyboard } from "../events/Keyboard";
+import { BoxCollider } from "../physics/BoxCollider";
+import { GRAVITY } from "../physics/physics";
 
 
 export enum PlayerAnimations {
@@ -12,7 +14,7 @@ export enum PlayerAnimations {
   hit = 'hit'   
 }
 
-export class Player extends RigidBody {
+export class Player extends RigidBody{
 
   atlasData : any
 
@@ -21,15 +23,15 @@ export class Player extends RigidBody {
   currentAnimation : AnimatedSprite
 
   speed : number = 5
-  jumpForce : number = 10
+
+  jumpForce : number = 1.5
 
   canJump : boolean = false
 
-
-  hitbox : Graphics
+  collider : BoxCollider
 
   constructor() {
-    super()
+    super(0.5)
 
     this.atlasData = { 
       frames: {
@@ -214,12 +216,11 @@ export class Player extends RigidBody {
     const spriteSheet = new Spritesheet(
       player_texture,
       this.atlasData
-    );
-    
+    )
 
-    (async () => {
+    ;(async () => {
       await spriteSheet.parse()
-    })()
+    })();
     
     this.animations = {
       idle : new AnimatedSprite(spriteSheet.animations.idle),
@@ -230,35 +231,39 @@ export class Player extends RigidBody {
       hit : new AnimatedSprite(spriteSheet.animations.hit),
     }
     
+    this.gravity = true
 
     for (let clave in this.animations) {
       this.animations[clave].autoUpdate = false
       this.animations[clave].anchor.x = 0.5
       this.animations[clave].anchor.y = 0.5
-      this.animations[clave].scale = 5
+      this.animations[clave].scale = 4
     }
-
 
     this.currentAnimation = this.animations.idle
     
 
-    this.hitbox = new Graphics()
-      .rect(0, 0, 45, 60)
-      .fill({
-        color: 0xFF00FF, 
-        alpha: 0.1,
-      })
-      .stroke({
-        color: 0xFF00FF, 
-        alpha: 0.8,
-        width: 1
-      })
+    // WIDTH: 9, HEIGHT: 12
+    this.collider = new BoxCollider({
+      width: 9 * 4,
+      height: 12 * 4,
+      color: 0xFF0000, 
+      debug: true
+    })
     
-    this.hitbox.x = -25
-    this.hitbox.y = -20
+    this.collider.y = -4 * 4
+    this.collider.x = -5 * 4
 
+    const pivotGraph = new Graphics()
+      .ellipse(0,0,1,1)
+      .fill({
+        color: 0x00ffff, 
+        alpha: 1,
+    })
+    
     this.addChild(this.currentAnimation)
-    this.addChild(this.hitbox)
+    this.addChild(this.collider)
+    this.addChild(pivotGraph)
   }
 
   playAnimation(animation : PlayerAnimations, speed : number = 0.07) {
@@ -270,26 +275,23 @@ export class Player extends RigidBody {
   override update(ticker : Ticker) {
     this.currentAnimation.update(ticker)
 
-    this.movent()
+    this.movent(ticker)
 
     super.update(ticker)
   }
   
-  movent() : void {
+  movent({ deltaTime }:  Ticker) : void {
     if(Keyboard.state.get('KeyA')) {
-      this.addForce(-this.speed)
+      this.addForce(-this.speed, 0)
     }
 
     if(Keyboard.state.get('KeyD')) {
-      this.addForce(this.speed)
+      this.addForce(this.speed, 0)
     }
 
-    if(Keyboard.state.get('KeyW')) {
-      this.addForce(0, -this.speed)
-    }
-
-    if(Keyboard.state.get('KeyS')) {
-      this.addForce(0, this.speed)
+    if(Keyboard.state.get('Space') && this.canJump) {
+      this.addForce(0, -(this.jumpForce * GRAVITY))
+      this.canJump = false
     }
   }
 }
